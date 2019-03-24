@@ -1,0 +1,75 @@
+    //	二进制读，i==4
+    int i = Integer.parseInt("100", 2);
+
+    //  通过 Integer 的静态方法可以使用其他进制输出
+    String binary = Integer.toBinaryString(i);
+    String octal = Integer.toOctalString(i);
+    String hex = Integer.toHexString(i);
+
+    ----------------------------------------
+
+    //	下列代码编译时不会出错，但运行时报错，这种现象被称为协变数组类型
+    Object[] objects = {"hello", "world"};
+    String[] strings = (String[]) objects;
+
+    //	虽然协变不能直接转化运行，但有时候也是有用的，如
+    public void test(Object[] objects);
+    String[] strings = {"hello", "world"};
+    this.test(strings);
+
+    //集合和数组很相似，但集合没法协变，下列代码将报错，除非将 test 的入参类型改为 List<? extends Object>
+    public void test(List<Object> objects);
+    List<String>list = new ArrayList<>();
+    list.add("hello");
+    list.add("world");
+    this.test(list);
+
+    ----------------------------------------
+
+    Arrays # binarySearch0 中有一句代码，int mid = (low + high) >>> 1;（相当于 int mid = (low + high) / 2;）
+    这种符号被称为符号位右移（二进制运算），这种方式可以对 2 的 n 次幂进行除后向下取整,如
+        4 >> 1 == 2，相当于 4/2
+        5 >> 1 == 2，相当于 5/2
+        18 >> 2 == 4，相当于 Math.floor(18 / Math.pow(2,2))，即 18 除以 2的两次方后向下取整
+    PS : 向下取整不等于向 0 取整，如 -7 >> 1 == -4（负数在内存中以补码形式出现）
+
+    ----------------------------------------
+
+    递归算法的设计通常为折半，即 f(a,left,right) == f(a,left,mid) + f(a,mid+1,right)
+    
+    ----------------------------------------
+    
+    //  集合类实现了 Iterable 接口(内含 Iterator),所以可以使用 forEach 遍历,
+    //  但同时需要注意的是,因为集合的 forEach 底层使用 Iterator,
+    //  所以当遍历时如果对集合进行添加或删除将抛出 CurrentModifiedException , 如下
+
+    List<String>strings=new ArrayList<>();
+    strings.add("hello");
+    strings.add("world");
+
+    //  错误写法, 集合结构变化之后 Iterator 将变成非法对象
+    for(String str:strings)
+        if(str.equals("hello")
+            //  假设就算成功了, 集合对象的 remove 会重新遍历该元素, 而不是使用当前遍历到的元素, 开销增大
+            strings.remove(str);
+
+    //  正确写法
+    Iterator<String>iterator=strings.iterator();
+    if(iterator.hasNext()){
+        String str=iterator.next();
+        if(str.equals("hello")
+            //  这里使用的不是集合的 remove(),而是 Iterator 的 remove(),所以不会报错
+            iterator.remove(str);
+    }
+
+    //  Iterator 的 remove 方法中使用的是集合类的 remove(int), 所以效率要高过集合类的 remove(object)
+    //  如果没有在遍历时修改的需求,使用 forEach 是最好的选择,反之则使用 Iterator
+
+    ----------------------------------------
+
+    List 的常用实现类为 ArrayList(动态数组) 和 LinkedList(双向链表)
+    1. 双向链表在返回第一个元素和最后一个元素的时候开销最小, 越访问中间的元素开销越大
+    2. List 使用 listIterator 的时候返回一个 ListIterator 对象(扩展了 Iterator, 功能更丰富)
+    3. List 的 ListIterator 和 Iterator 以内部类的形式实现
+
+    ps.内部类与嵌套类的区别见 TestNestedClass
